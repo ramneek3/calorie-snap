@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMeals, dayKey, sumMacro } from "../store.jsx";
 
@@ -10,17 +10,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [mode, setMode] = useState("demo");
   const [dragging, setDragging] = useState(false);
 
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    fetch("/api/health")
-      .then((r) => r.json())
-      .then((d) => setMode(d.mode))
-      .catch(() => setMode("demo"));
-  }, []);
 
   const reset = useCallback(() => {
     setFile(null);
@@ -60,7 +52,6 @@ export default function Home() {
 
       const data = await res.json();
       setResult(data);
-      setMode(data.mode);
 
       const loggedAt = new Date();
       addMeal({
@@ -154,15 +145,6 @@ export default function Home() {
               {loading ? "Analyzing…" : "Analyze calories"}
             </button>
           </div>
-
-          {mode === "demo" && (
-            <div className="demo-note">
-              <strong>Demo mode:</strong> you don't have an OpenAI API key yet, so
-              you'll get sample data. To enable real photo analysis, create{" "}
-              <code>server/.env</code> with <code>OPENAI_API_KEY=your_key</code> and
-              restart the server.
-            </div>
-          )}
         </section>
 
         <section className="card">
