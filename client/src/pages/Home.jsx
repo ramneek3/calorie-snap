@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMeals, dayKey, sumMacro } from "../store.jsx";
+import { compressImage } from "../compressImage.js";
 
 export default function Home() {
   const { meals, addMeal } = useMeals();
@@ -21,16 +22,22 @@ export default function Home() {
     setError(null);
   }, []);
 
-  const onFile = useCallback((picked) => {
+  const onFile = useCallback(async (picked) => {
     if (!picked) return;
     if (!picked.type.startsWith("image/")) {
       setError("Please choose an image file (JPG, PNG, or WebP).");
       return;
     }
     setError(null);
-    setFile(picked);
     setResult(null);
-    setPreview(URL.createObjectURL(picked));
+
+    try {
+      const compressed = await compressImage(picked);
+      setFile(compressed);
+      setPreview(URL.createObjectURL(compressed));
+    } catch {
+      setError("Could not read that image. Please try another file.");
+    }
   }, []);
 
   const analyze = useCallback(async () => {
@@ -100,7 +107,7 @@ export default function Home() {
       <div className="grid">
         <section className="card">
           <h2>1. Upload your meal</h2>
-          <p className="sub">Drag &amp; drop or click below — JPG, PNG, or WebP up to 15 MB</p>
+          <p className="sub">Drag &amp; drop or click below — JPG, PNG, or WebP</p>
 
           <div
             className={`dropzone ${dragging ? "dragging" : ""}`}
