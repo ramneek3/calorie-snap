@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
+  },
+  "dependencies": {
+    "openai": "^7.20.0"
   }
 }
