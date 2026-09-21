@@ -40,7 +40,7 @@ calorie tracker/
 ## Getting started
 
 ```bash
-# 1. Install dependencies for the root, server, and client
+# 1. Install dependencies for the root, server, and client (root install also covers the Vercel function)
 npm run install:all
 
 # 2. Start both the API (localhost:3001) and the web app (localhost:5173)
