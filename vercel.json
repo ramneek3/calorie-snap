@@ -1,14 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "nodeVersion": "22.x",
   "installCommand": "npm install --prefix client && npm install --prefix server && npm install --prefix . openai",
   "buildCommand": "npm run build --prefix client",
   "outputDirectory": "client/dist",
   "functions": {
     "api/*.js": {
       "maxDuration": 60,
-      "includeFiles": "server/src/foodAnalysis.js"
+      "includeFiles": "server/src/foodAnalysis.js",
+      "nodeVersion": "22.x"
     }
   },
   "rewrites": [
