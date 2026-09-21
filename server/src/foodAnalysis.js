@@ -1,4 +1,14 @@
-import OpenAI from "openai";
+// "openai" is imported lazily so this module loads even where the package
+// isn't installed (e.g. the Vercel function bundle in demo mode). It is only
+// resolved when a real analysis is actually requested.
+let OpenAIImpl = null;
+async function getOpenAI() {
+  if (!OpenAIImpl) {
+    const mod = await import("openai");
+    OpenAIImpl = mod.default;
+  }
+  return OpenAIImpl;
+}
 
 const SYSTEM_PROMPT = `You are a nutrition expert who estimates calories and macros from food photos.
 Analyze the image and identify the meal and its individual components.
@@ -18,6 +28,7 @@ Numbers are in grams (except calories). Round to whole numbers.`;
  * Send the photo to GPT-4o vision and parse the structured nutrition estimate.
  */
 export async function estimateCalories(imageBuffer, mimeType) {
+  const OpenAI = await getOpenAI();
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const base64 = imageBuffer.toString("base64");
