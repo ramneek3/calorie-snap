@@ -35,9 +35,23 @@ export async function compressImage(file) {
   const ctx = canvas.getContext("2d");
   ctx.drawImage(original, 0, 0, width, height);
 
-  const blob = await canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+  const blob = await canvasToBlob(canvas);
 
   return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.jpg`, {
     type: "image/jpeg",
+  });
+}
+
+/**
+ * canvas.toDataURL() returns a base64 *string*, which new File() would wrap as
+ * plain text and render as a broken image. Convert it to a real binary Blob.
+ */
+function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("Could not encode the image."))),
+      "image/jpeg",
+      JPEG_QUALITY
+    );
   });
 }
