@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "nodeVersion": "22.x",
   "installCommand": "npm install --prefix client && npm install --prefix server && npm install --prefix . openai",
   "buildCommand": "npm run build --prefix client",
   "outputDirectory": "client/dist",

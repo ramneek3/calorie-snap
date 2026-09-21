@@ -34,25 +34,31 @@ export async function estimateCalories(imageBuffer, mimeType) {
   const base64 = imageBuffer.toString("base64");
   const dataUrl = `data:${mimeType};base64,${base64}`;
 
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Estimate the calories and macros of this meal. Return JSON only.",
-          },
-          { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
-        ],
-      },
-    ],
-    response_format: { type: "json_object" },
-    max_tokens: 1200,
-    temperature: 0.2,
-  });
+  try {
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Estimate the calories and macros of this meal. Return JSON only.",
+            },
+            { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
+          ],
+        },
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1200,
+      temperature: 0.2,
+    });
+  } catch (error) {
+    // Surface the real cause instead of a bare "Connection error."
+    const detail = error?.message || String(error);
+    throw new Error(`OpenAI request failed: ${detail}`);
+  }
 
   const raw = completion.choices[0]?.message?.content;
   if (!raw) {
