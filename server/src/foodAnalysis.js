@@ -25,11 +25,17 @@ ALWAYS respond with valid JSON only, no markdown, matching this exact shape:
 Numbers are in grams (except calories). Round to whole numbers.`;
 
 // OpenRouter (free vision models) is preferred; OpenAI is the paid alternative.
-// The second OpenRouter model is a fallback for when the first is busy or down.
+// Free models are often rate-limited, so the rest of the list are fallbacks tried in order.
 const OPENROUTER_MODELS = [
   "nvidia/nemotron-3.5-super-vl:free",
   "google/gemma-4-31b-it:free",
+  "google/gemma-4-26b-a4b-it:free",
+  "dots-studio/dots-3-note-preview:free",
 ];
+
+// Stay inside the 60 s Vercel function limit across all attempts
+const TOTAL_BUDGET_MS = 50_000;
+const PER_MODEL_TIMEOUT_MS = 25_000;
 
 function aiConfig() {
   // OPENROUTER_KEY is accepted too, since that is a common way to name it
@@ -65,20 +71,20 @@ export function analysisMode() {
 export async function estimateCalories(imageBuffer, mimeType) {
   const config = aiConfig();
   const OpenAI = await getOpenAI();
-  const client = new OpenAI({
-    apiKey: config.apiKey,
-    baseURL: config.baseURL,
-    // Keep two attempts inside the 60 s function limit
-    timeout: 25_000,
-    maxRetries: 0,
-  });
+  const client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL, maxRetries: 0 });
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
 
   const dataUrl = `data:${mimeType};base64,${imageBuffer.toString("base64")}`;
   const failures = [];
 
   for (const model of config.models) {
+    const remaining = deadline - Date.now();
+    if (remaining < 3_000) {
+      failures.push(`${model}: skipped, out of time`);
+      continue;
+    }
     try {
-      const completion = await client.chat.completions.create({
+      const request = {
         model,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -91,10 +97,22 @@ export async function estimateCalories(imageBuffer, mimeType) {
           },
         ],
         response_format: { type: "json_object" },
-        max_tokens: 1200,
+        // Reasoning models spend tokens thinking before they answer; 1,200 left nothing for the JSON
+        max_tokens: 4000,
         temperature: 0.2,
+      };
+      if (config.provider === "openrouter") {
+        // OpenRouter-only: keep reasoning short and out of the reply; ignored by models without it
+        request.reasoning = { effort: "low", exclude: true };
+      }
+      const completion = await client.chat.completions.create(request, {
+        timeout: Math.min(PER_MODEL_TIMEOUT_MS, remaining),
       });
-      const estimate = normalizeEstimate(parseJson(completion.choices[0]?.message?.content));
+      const choice = completion.choices[0];
+      if (!choice?.message?.content && choice?.finish_reason === "length") {
+        throw new Error("The model ran out of tokens before answering.");
+      }
+      const estimate = normalizeEstimate(parseJson(choice?.message?.content));
       return { ...estimate, model };
     } catch (error) {
       failures.push(`${model}: ${error?.message || String(error)}`);
