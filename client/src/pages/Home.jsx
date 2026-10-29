@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMeals, dayKey, sumMacro } from "../store.jsx";
 import { compressImage } from "../compressImage.js";
@@ -12,8 +12,17 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [dragging, setDragging] = useState(false);
+  const [mode, setMode] = useState(null);
 
   const inputRef = useRef(null);
+
+  // Ask the API whether a vision key is configured, so demo mode is never mistaken for a real result
+  useEffect(() => {
+    fetch("/api/analyze")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setMode(data?.mode ?? null))
+      .catch(() => setMode(null));
+  }, []);
 
   const reset = useCallback(() => {
     setFile(null);
@@ -59,6 +68,7 @@ export default function Home() {
 
       const data = await res.json();
       setResult(data);
+      setMode(data.mode);
 
       const loggedAt = new Date();
       addMeal({
@@ -156,7 +166,13 @@ export default function Home() {
 
         <section className="card">
           <h2>2. Nutrition estimate</h2>
-          <p className="sub">Powered by GPT-4o vision — estimates are approximate</p>
+          <p className="sub">AI vision estimate — figures are approximate</p>
+
+          {mode === "demo" && (
+            <p className="demo-banner">
+              Demo mode: no AI key is configured, so results are sample meals, not an analysis of your photo.
+            </p>
+          )}
 
           {error && <p className="error">{error}</p>}
 

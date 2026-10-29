@@ -1,4 +1,4 @@
-import { estimateCalories, demoEstimate } from "../server/src/foodAnalysis.js";
+import { estimateCalories, demoEstimate, analysisMode } from "../server/src/foodAnalysis.js";
 
 // Vercel Functions reject request bodies larger than 4.5 MB, so guard a little
 // under that. The client compresses photos before uploading to stay within it.
@@ -7,7 +7,7 @@ const MAX_BYTES = 4_000_000;
 export function GET() {
   return Response.json({
     status: "ok",
-    mode: process.env.OPENAI_API_KEY ? "live" : "demo",
+    mode: analysisMode(),
   });
 }
 
@@ -40,7 +40,7 @@ export async function POST(request) {
     const mimeType = photo.type || "image/jpeg";
 
     // No API key? Return realistic sample data so the UI is fully testable.
-    if (!process.env.OPENAI_API_KEY) {
+    if (analysisMode() === "demo") {
       const result = await demoEstimate(Buffer.from(bytes));
       return Response.json({ ...result, mode: "demo" });
     }

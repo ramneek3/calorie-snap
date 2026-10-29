@@ -1,5 +1,5 @@
 // Photos straight off a phone are often 4-12 MB, which blows past Vercel's
-// 4.5 MB serverless body limit. GPT-4o vision doesn't need full resolution, so
+// 4.5 MB serverless body limit. Vision models don't need full resolution, so
 // we downscale to a reasonable max dimension and re-encode as JPEG before upload.
 const MAX_DIMENSION = 1536;
 const JPEG_QUALITY = 0.85;

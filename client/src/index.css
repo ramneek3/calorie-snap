@@ -415,6 +415,17 @@ button {
   line-height: 1.5;
 }
 
+.demo-banner {
+  margin: 0 0 14px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fcd34d;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
 /* ---------- History ---------- */
 .history {
   margin-top: 20px;

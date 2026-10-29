@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import dotenv from "dotenv";
-import { estimateCalories, demoEstimate } from "./src/foodAnalysis.js";
+import { estimateCalories, demoEstimate, analysisMode } from "./src/foodAnalysis.js";
 
 dotenv.config();
 
@@ -18,16 +18,14 @@ const upload = multer({
   limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB
 });
 
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    mode: process.env.OPENAI_API_KEY ? "live" : "demo",
-  });
+// GET /api/analyze matches the Vercel function, which the client uses to show the mode
+app.get(["/api/health", "/api/analyze"], (req, res) => {
+  res.json({ status: "ok", mode: analysisMode() });
 });
 
 app.post("/api/analyze", upload.single("photo"), async (req, res) => {
   try {
-    const hasApiKey = Boolean(process.env.OPENAI_API_KEY);
+    const hasApiKey = analysisMode() === "live";
 
     let imageBuffer = null;
     let mimeType = "image/jpeg";
@@ -68,6 +66,6 @@ app.post("/api/analyze", upload.single("photo"), async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  const mode = process.env.OPENAI_API_KEY ? "live (GPT-4o)" : "DEMO (no API key)";
+  const mode = analysisMode() === "live" ? "live" : "DEMO (no API key)";
   console.log(`🍽️  Calorie tracker API running on http://localhost:${PORT} — ${mode}`);
 });

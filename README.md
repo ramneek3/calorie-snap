@@ -1,13 +1,13 @@
 # 🍽️ CalorieSnap
 
-Snap a photo of your meal and get an instant calorie + macro estimate, powered by GPT-4o vision.
+Snap a photo of your meal and get an instant calorie + macro estimate, powered by AI vision models (free via OpenRouter, or OpenAI GPT-4o).
 
 ![architecture](https://img.shields.io/badge/stack-Node%20%2B%20Express%20%2B%20React%20%2B%20Vite-22c55e)
 
 ## What it does
 
 1. **Upload a photo** of your meal (drag & drop or file picker).
-2. The backend sends the image to **GPT-4o vision**, which identifies the dish and its components.
+2. The backend sends the image to a **vision model** (a free OpenRouter model by default, with a second model as fallback), which identifies the dish and its components.
 3. You get back **total calories, protein, carbs, and fat**, plus a per-item breakdown.
 4. Every analysis is saved to your **meal history**, grouped by day.
 
@@ -27,7 +27,7 @@ calorie tracker/
 ├── package.json              # Root: runs both client and server with one command
 ├── server/                   # Express API
 │   ├── index.js              # /api/analyze endpoint (accepts uploads or base64)
-│   └── src/foodAnalysis.js   # GPT-4o vision call + demo-mode fallback
+│   └── src/foodAnalysis.js   # vision model call (OpenRouter / OpenAI) + demo-mode fallback
 └── client/                   # React + Vite frontend
     └── src/
         ├── App.jsx           # Routes
@@ -51,26 +51,33 @@ Then open **http://localhost:5173** and upload a food photo.
 
 ## Enabling real photo analysis
 
-The app runs in **demo mode** until you add an OpenAI key — you'll get sample
+The app runs in **demo mode** until you add an API key — you'll get sample
 data so you can try the full UI right away.
 
 To analyze real photos:
 
-1. Get an API key from [OpenAI](https://platform.openai.com/api-keys).
+1. Get a free API key from [OpenRouter](https://openrouter.ai/settings/keys) (no card needed).
 2. Copy `server/.env.example` to `server/.env`.
 3. Paste your key:
    ```
-   OPENAI_API_KEY=sk-...
+   OPENROUTER_API_KEY=sk-or-...
    ```
-4. Restart the server (`npm run dev:server`). The badge in the top-right will
-   switch from **Demo mode** to **Live · GPT-4o**.
+4. Restart the server (`npm run dev:server`). The yellow **Demo mode** banner disappears.
+
+By default the app uses `nvidia/nemotron-3.5-super-vl:free` and falls back to
+`google/gemma-4-31b-it:free` if the first model fails. Set `OPENROUTER_MODEL` to use a
+specific model, or set `OPENAI_API_KEY` instead to use GPT-4o (paid).
+
+On Vercel, add `OPENROUTER_API_KEY` under **Project → Settings → Environment Variables**
+and redeploy.
 
 ## Notes & caveats
 
 - Calorie estimates from photos are **approximate** — portion sizes are guessed
   from visual cues. Use them as a guide, not medical advice.
-- Images are sent to OpenAI for analysis and are not stored on the server.
+- Images are sent to the configured AI provider (OpenRouter or OpenAI) for analysis and are not stored on the server.
 - Login is **local-only**: credentials are never transmitted and exist purely
   to personalise the app. Don't reuse a real password.
-- The demo-mode response is deterministic per image, so the same photo always
-  returns the same sample meal.
+- Demo mode returns one of four sample meals (picked from a hash of the image) and
+  shows a banner saying so; it does not look at the photo.
+- Free models take roughly 5–15 seconds per photo and can be rate-limited.
