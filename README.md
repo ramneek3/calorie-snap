@@ -68,7 +68,7 @@ By default the app uses `nvidia/nemotron-3.5-super-vl:free` and falls back to
 `google/gemma-4-31b-it:free` if the first model fails. Set `OPENROUTER_MODEL` to use a
 specific model, or set `OPENAI_API_KEY` instead to use GPT-4o (paid).
 
-On Vercel, add `OPENROUTER_API_KEY` under **Project → Settings → Environment Variables**
+On Vercel, add `OPENROUTER_API_KEY` (or `OPENROUTER_KEY`) under **Project → Settings → Environment Variables**
 and redeploy.
 
 ## Notes & caveats

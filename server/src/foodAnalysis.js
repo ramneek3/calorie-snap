@@ -32,11 +32,13 @@ const OPENROUTER_MODELS = [
 ];
 
 function aiConfig() {
-  if (process.env.OPENROUTER_API_KEY) {
+  // OPENROUTER_KEY is accepted too, since that is a common way to name it
+  const openRouterKey = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
+  if (openRouterKey) {
     const custom = process.env.OPENROUTER_MODEL;
     return {
       provider: "openrouter",
-      apiKey: process.env.OPENROUTER_API_KEY,
+      apiKey: openRouterKey,
       baseURL: "https://openrouter.ai/api/v1",
       models: custom ? [custom] : OPENROUTER_MODELS,
     };
