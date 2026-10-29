@@ -102,8 +102,8 @@ export async function estimateCalories(imageBuffer, mimeType) {
         temperature: 0.2,
       };
       if (config.provider === "openrouter") {
-        // OpenRouter-only: keep reasoning short and out of the reply; ignored by models without it
-        request.reasoning = { effort: "low", exclude: true };
+        // OpenRouter-only: turn off "thinking" so reasoning models answer within the time limit
+        request.reasoning = { enabled: false };
       }
       const completion = await client.chat.completions.create(request, {
         timeout: Math.min(PER_MODEL_TIMEOUT_MS, remaining),

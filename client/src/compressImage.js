@@ -1,7 +1,7 @@
 // Photos straight off a phone are often 4-12 MB, which blows past Vercel's
 // 4.5 MB serverless body limit. Vision models don't need full resolution, so
 // we downscale to a reasonable max dimension and re-encode as JPEG before upload.
-const MAX_DIMENSION = 1536;
+const MAX_DIMENSION = 1024;
 const JPEG_QUALITY = 0.85;
 
 function loadImage(dataUrl) {
